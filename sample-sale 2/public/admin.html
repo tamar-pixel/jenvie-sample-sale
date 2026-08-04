@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Seller · Sample Sale</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bone:#f5f2ec;--paper:#fffdf9;--ink:#121110;--soft:#4a453e;--muted:#9c9488;--line:#e7dfd3;--accent:#6d2634;
+    --serif:"Cormorant Garamond",Georgia,serif;--sans:"Jost",-apple-system,Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bone);color:var(--ink);font-weight:300}
+  header{display:flex;justify-content:space-between;align-items:center;padding:20px 28px;border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--serif);font-size:22px}.brand small{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-left:10px}
+  .wrap{max-width:1100px;margin:0 auto;padding:26px 28px 80px;display:grid;grid-template-columns:340px 1fr;gap:34px}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr}}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:22px}
+  .panel h2{font-family:var(--serif);font-size:24px;font-weight:500;margin-bottom:4px}
+  .panel p.sub{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  label{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:14px 0 7px}
+  input,.drop{width:100%;background:#fff;border:1px solid var(--line);border-radius:2px;padding:11px 12px;font-family:var(--sans);font-size:14px;font-weight:300}
+  .drop{border-style:dashed;text-align:center;cursor:pointer;color:var(--muted);padding:22px}
+  .row{display:flex;gap:10px}.row>div{flex:1}
+  .chk{display:flex;gap:9px;align-items:center;font-size:12.5px;color:var(--soft);margin-top:14px}
+  .btn{width:100%;margin-top:18px;background:var(--ink);color:#fff;border:none;padding:14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;border-radius:2px;cursor:pointer}
+  .btn.alt{background:transparent;border:1px solid var(--ink);color:var(--ink)}
+  .tabs{display:flex;gap:22px;margin-bottom:16px}
+  .tabs button{background:none;border:none;font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding-bottom:5px;border-bottom:1px solid transparent}
+  .tabs button.on{color:var(--ink);border-color:var(--ink)}
+  .items{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:560px){.items{grid-template-columns:repeat(2,1fr)}}
+  .it{border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#fff}
+  .it .im{aspect-ratio:3/4;background:#e6ded2 center/cover}
+  .it .t{padding:9px}.it .t .n{font-family:var(--serif);font-size:15px}.it .t .a{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .it.sold .im{opacity:.5}.it .st{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);padding:0 9px 8px}
+  .orders{width:100%;border-collapse:collapse;font-size:13px}
+  .orders th,.orders td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  .orders th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+  .banner{background:#f4ecdd;border:1px solid var(--line);border-radius:4px;padding:12px 14px;font-size:12.5px;color:var(--soft);margin-bottom:18px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" id="brand">Seller <small id="slugtag"></small></div>
+  <a href="#" id="viewsale" style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">View live sale →</a>
+</header>
+<div class="wrap">
+  <div class="panel">
+    <h2>Add a piece</h2>
+    <p class="sub">Photo does the visual. Confirm fabric &amp; size — or set them once as your default.</p>
+    <form id="form">
+      <label>Photo</label>
+      <div class="drop" id="drop">Tap to choose a photo</div>
+      <input type="file" id="photo" accept="image/*" style="display:none"/>
+      <label>Name</label>
+      <input id="name" placeholder="e.g. Silk Bias Slip"/>
+      <div class="row">
+        <div><label>Fabric</label><input id="fabric" placeholder="Stolen Softness viscose blend"/></div>
+        <div><label>Size</label><input id="size" placeholder="M"/></div>
+      </div>
+      <label>Price (USD)</label>
+      <input id="price" value="25"/>
+      <label class="chk"><input type="checkbox" id="savedef" style="width:auto"/> Save fabric &amp; size as my default</label>
+      <button class="btn" type="submit">Add to sale</button>
+    </form>
+    <button class="btn alt" id="connect" style="margin-top:10px">Connect Stripe (for payouts)</button>
+  </div>
+
+  <div class="panel">
+    <div class="tabs"><button class="on" data-t="items">Inventory</button><button data-t="orders">Orders</button></div>
+    <div id="paneItems">
+      <div class="banner" id="stat">—</div>
+      <div class="items" id="items"></div>
+    </div>
+    <div id="paneOrders" style="display:none">
+      <table class="orders"><thead><tr><th>When</th><th>Items</th><th>Fulfillment</th><th>Total</th><th>Email</th></tr></thead>
+      <tbody id="orows"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const slug = location.pathname.split('/admin/')[1] || 'jenvie';
+document.getElementById('slugtag').textContent = slug;
+document.getElementById('viewsale').href = '/s/'+slug;
+const def = { fabric:'', size:'' };
+const photo=document.getElementById('photo'), drop=document.getElementById('drop');
+drop.onclick=()=>photo.click();
+photo.onchange=()=>{drop.textContent = photo.files[0]?('✓ '+photo.files[0].name):'Tap to choose a photo';};
+
+async function loadItems(){
+  const r=await fetch('/api/sales/'+slug); const {seller,items}=await r.json();
+  document.getElementById('brand').firstChild.textContent = seller.name+' ';
+  const live=items.filter(i=>i.status==='live').length, sold=items.length-live;
+  document.getElementById('stat').innerHTML = `<b>${items.length}</b> pieces · ${live} live · ${sold} sold`
+    + (seller.connected?' · <span style="color:var(--accent)">Stripe connected</span>':' · <span style="color:var(--accent)">Connect Stripe to get paid</span>');
+  document.getElementById('items').innerHTML = items.map(i=>{
+    const bg=i.image_url?`background-image:url('${i.image_url}')`:'';
+    return `<div class="it ${i.status==='sold'?'sold':''}"><div class="im" style="${bg}"></div>
+      <div class="t"><div class="n">${i.name}</div><div class="a">$${(i.price_cents/100).toFixed(0)} · ${i.size||'—'}</div></div>
+      ${i.status==='sold'?'<div class="st">Sold</div>':''}</div>`;
+  }).join('') || '<p style="color:var(--muted);font-style:italic;font-family:var(--serif)">No pieces yet.</p>';
+}
+async function loadOrders(){
+  const r=await fetch('/api/orders/'+slug); const {orders}=await r.json();
+  document.getElementById('orows').innerHTML = orders.map(o=>`<tr>
+    <td>${new Date(o.created_at).toLocaleString()}</td><td>${(o.item_ids||[]).length}</td>
+    <td>${o.fulfillment}</td><td>$${(o.amount_cents/100).toFixed(2)}</td><td>${o.email||''}</td></tr>`).join('')
+    || '<tr><td colspan="5" style="color:var(--muted)">No orders yet.</td></tr>';
+}
+document.getElementById('form').onsubmit=async e=>{
+  e.preventDefault();
+  const fd=new FormData();
+  if(photo.files[0])fd.append('photo',photo.files[0]);
+  fd.append('name',document.getElementById('name').value||'Sample piece');
+  const fabric=document.getElementById('fabric').value||def.fabric;
+  const size=document.getElementById('size').value||def.size;
+  fd.append('fabric',fabric);fd.append('size',size);
+  fd.append('price',document.getElementById('price').value||'25');
+  if(document.getElementById('savedef').checked){def.fabric=fabric;def.size=size;}
+  const btn=e.target.querySelector('.btn');btn.textContent='Adding…';btn.disabled=true;
+  await fetch('/api/sales/'+slug+'/items',{method:'POST',body:fd});
+  btn.textContent='Add to sale';btn.disabled=false;
+  document.getElementById('name').value='';photo.value='';drop.textContent='Tap to choose a photo';
+  if(!document.getElementById('savedef').checked===false){/*keep defaults in fields*/}
+  loadItems();
+};
+document.getElementById('connect').onclick=async()=>{
+  const r=await fetch('/api/sales/'+slug); const {seller}=await r.json();
+  const res=await fetch('/api/connect/onboard',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sellerId:seller.id})});
+  const d=await res.json(); if(d.url)location.href=d.url; else alert(d.error||'Stripe not configured yet');
+};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const items=b.dataset.t==='items';
+  document.getElementById('paneItems').style.display=items?'':'none';
+  document.getElementById('paneOrders').style.display=items?'none':'';
+  if(!items)loadOrders();
+});
+loadItems();
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sample Sale</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bone:#f5f2ec;--paper:#fffdf9;--ink:#121110;--soft:#4a453e;--muted:#9c9488;--line:#e7dfd3;--accent:#6d2634;
+    --serif:"Cormorant Garamond",Georgia,serif;--sans:"Jost",-apple-system,Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bone);color:var(--ink);font-weight:300;line-height:1.5}
+  .marquee{background:var(--ink);color:#f1e9dc;font-size:11px;letter-spacing:.3em;text-transform:uppercase;text-align:center;padding:8px}
+  .marquee b{color:#fff;font-weight:500}
+  .hero{text-align:center;padding:54px 22px 20px;max-width:800px;margin:0 auto}
+  .hero .kick{font-size:11px;letter-spacing:.36em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(48px,10vw,104px);line-height:.95}
+  .hero h1 em{font-style:italic}
+  .cd{display:inline-flex;margin-top:28px;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--paper)}
+  .cd .u{width:78px;padding:14px 6px;border-right:1px solid var(--line)}.cd .u:last-child{border:0}
+  .cd .n{font-family:var(--serif);font-size:34px;font-variant-numeric:tabular-nums}.cd .l{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:7px}
+  .note{margin-top:24px;font-size:12px;color:var(--soft);border:1px solid var(--line);display:inline-block;padding:8px 16px;border-radius:40px}
+  .grid{max-width:1240px;margin:34px auto 90px;padding:0 30px;display:grid;grid-template-columns:repeat(4,1fr);gap:40px 30px}
+  @media(max-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:680px){.grid{grid-template-columns:repeat(2,1fr);gap:26px 14px}}
+  .card .ph{position:relative;aspect-ratio:3/4;background:#e6ded2 center/cover;overflow:hidden}
+  .card .ph .lbl{position:absolute;bottom:12px;left:12px;font-family:var(--serif);font-style:italic;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+  .card .ph .one{position:absolute;top:10px;left:12px;color:#fff;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase}
+  .card.sold .ph:after{content:"Claimed";position:absolute;inset:0;background:rgba(245,242,236,.66);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink)}
+  .m{padding:14px 2px 0}.m .nm{font-family:var(--serif);font-size:20px}
+  .m .attrs{font-size:11px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-top:5px}
+  .m .pr{margin-top:9px;font-size:15px}.m .pr .was{color:var(--muted);text-decoration:line-through;font-size:12px;margin-left:8px}
+  .claim{margin-top:12px;width:100%;border:1px solid var(--ink);background:transparent;color:var(--ink);font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:12px;cursor:pointer}
+  .claim:hover{background:var(--ink);color:#fff}.card.sold .claim{border-color:var(--muted);color:var(--muted);cursor:default}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);font-family:var(--serif);font-style:italic;font-size:22px;padding:60px}
+  footer{text-align:center;padding:40px;color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="marquee">Everything <b>$25</b> · One of one · Free local pickup</div>
+<section class="hero">
+  <div class="kick" id="kick">The Sample Sale</div>
+  <h1 id="title">Everything <em>$25</em></h1>
+  <div class="cd"><div class="u"><div class="n" id="h">00</div><div class="l">Hrs</div></div>
+    <div class="u"><div class="n" id="m">00</div><div class="l">Min</div></div>
+    <div class="u"><div class="n" id="s">00</div><div class="l">Sec</div></div></div>
+  <div class="note">Free local pickup — or ship for $12 at checkout</div>
+</section>
+<div class="grid" id="grid"><div class="empty">Loading the rack…</div></div>
+<footer id="foot">Sample Sale</footer>
+
+<script>
+const slug = location.pathname.split('/s/')[1] || 'jenvie';
+let endsAt = null;
+async function load(){
+  const r = await fetch('/api/sales/'+slug); if(!r.ok){document.getElementById('grid').innerHTML='<div class="empty">Sale not found.</div>';return;}
+  const {sale,seller,items} = await r.json();
+  document.getElementById('kick').textContent = seller.name;
+  document.getElementById('title').innerHTML = sale.title.replace('$25','<em>$25</em>');
+  document.getElementById('foot').textContent = seller.name;
+  endsAt = new Date(sale.ends_at).getTime();
+  const grid = document.getElementById('grid');
+  if(!items.length){grid.innerHTML='<div class="empty">No pieces posted yet — check back soon.</div>';return;}
+  grid.innerHTML = items.map(i=>{
+    const sold = i.status==='sold';
+    const bg = i.image_url?`background-image:url('${i.image_url}')`:'';
+    const attrs=[i.color_name,i.fabric,i.size].filter(Boolean).join(' · ');
+    return `<div class="card ${sold?'sold':''}">
+      <div class="ph" style="${bg}">${sold?'':'<span class="one">One of one</span>'}${i.image_url?'':`<span class="lbl">${i.name}</span>`}</div>
+      <div class="m"><div class="nm">${i.name}</div><div class="attrs">${attrs||'&nbsp;'}</div>
+        <div class="pr">$${(i.price_cents/100).toFixed(0)}</div>
+        ${sold?'<button class="claim" disabled>Claimed</button>':`<button class="claim" data-id="${i.id}">Claim it</button>`}
+      </div></div>`;
+  }).join('');
+}
+document.getElementById('grid').addEventListener('click',async e=>{
+  const b=e.target.closest('.claim'); if(!b||b.disabled)return;
+  b.textContent='Taking you to checkout…'; b.disabled=true;
+  const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({slug,itemIds:[b.dataset.id],fulfillment:'pickup'})});
+  const d=await r.json();
+  if(d.url){location.href=d.url;} else {alert(d.error||'Could not start checkout');b.textContent='Claim it';b.disabled=false;load();}
+});
+setInterval(()=>{if(!endsAt)return;let x=Math.max(0,Math.floor((endsAt-Date.now())/1000));
+  document.getElementById('h').textContent=String(Math.floor(x/3600)).padStart(2,'0');
+  document.getElementById('m').textContent=String(Math.floor(x%3600/60)).padStart(2,'0');
+  document.getElementById('s').textContent=String(x%60).padStart(2,'0');},1000);
+if(location.search.includes('paid=1'))setTimeout(()=>alert('Thank you — your piece is reserved! Details are in your email.'),300);
+load(); setInterval(load, 15000); // refresh so 'sold' shows in near-real-time
+</script>
+</body>
+</html>
