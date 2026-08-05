@@ -25,7 +25,7 @@ function newId(prefix) { return prefix + '_' + nanoid(10); }
 const DATA_FILE = path.join(__dirname, 'data', 'store.json');
 function jsonLoad() {
   try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
-  catch { return { sellers: [], sales: [], items: [], orders: [] }; }
+  catch { return { sellers: [], sales: [], items: [], orders: [], waitlist: [] }; }
 }
 function jsonSave(db) {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
@@ -52,6 +52,8 @@ async function init() {
       CREATE TABLE IF NOT EXISTS orders (
         id TEXT PRIMARY KEY, sale_id TEXT, item_ids JSONB, email TEXT, fulfillment TEXT,
         amount_cents INT, stripe_session TEXT, created_at TIMESTAMPTZ DEFAULT now());
+      CREATE TABLE IF NOT EXISTS waitlist (
+        id TEXT PRIMARY KEY, email TEXT UNIQUE, brand TEXT, created_at TIMESTAMPTZ DEFAULT now());
     `);
   }
   await seedDefault();
@@ -152,8 +154,30 @@ async function listOrders(saleId) {
   return jsonLoad().orders.filter(o => o.sale_id === saleId);
 }
 
+/* ---------------- waitlist ---------------- */
+async function addWaitlist({ email, brand }) {
+  email = (email || '').toLowerCase().trim();
+  const row = { id: newId('wl'), email, brand: (brand || '').trim() || null, created_at: new Date().toISOString() };
+  if (USE_PG) {
+    const r = await pool.query(
+      'INSERT INTO waitlist(id,email,brand) VALUES($1,$2,$3) ON CONFLICT (email) DO NOTHING RETURNING id',
+      [row.id, row.email, row.brand]);
+    return { ok: true, duplicate: r.rowCount === 0 };
+  }
+  const db = jsonLoad();
+  if (!db.waitlist) db.waitlist = [];
+  const dup = db.waitlist.some(w => w.email === email);
+  if (!dup) { db.waitlist.push(row); jsonSave(db); }
+  return { ok: true, duplicate: dup };
+}
+async function listWaitlist() {
+  if (USE_PG) return (await pool.query('SELECT id,email,brand,created_at FROM waitlist ORDER BY created_at DESC')).rows;
+  return (jsonLoad().waitlist || []).slice().reverse();
+}
+
 module.exports = {
   init, getSaleBySlug, getSeller, setSellerStripe,
   createItem, listItems, getItemsByIds, markItemsSold,
   createOrder, listOrders, newId,
+  addWaitlist, listWaitlist,
 };

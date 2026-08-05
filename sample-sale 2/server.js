@@ -68,7 +68,8 @@ function saveImage(file) {
 }
 
 /* ---------- pages ---------- */
-app.get('/', (_req, res) => res.redirect('/s/jenvie'));
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
+app.get('/signups', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'signups.html')));
 app.get('/s/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'shop.html')));
 app.get('/admin/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
@@ -177,6 +178,39 @@ app.get('/api/orders/:slug', async (req, res) => {
   const sale = await db.getSaleBySlug(req.params.slug);
   if (!sale) return res.status(404).json({ error: 'Sale not found' });
   res.json({ orders: await db.listOrders(sale.id) });
+});
+
+/* ---------- waitlist (Otzaar homepage) ---------- */
+app.post('/api/waitlist', async (req, res) => {
+  const email = (req.body?.email || '').trim();
+  const brand = (req.body?.brand || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+  try {
+    const r = await db.addWaitlist({ email, brand });
+    console.log(`Waitlist: ${email}${brand ? ' (' + brand + ')' : ''}${r.duplicate ? ' [already on list]' : ''}`);
+    // Real-time feed to a Google Sheet (Apps Script web app). Optional: set WAITLIST_WEBHOOK_URL.
+    if (process.env.WAITLIST_WEBHOOK_URL && !r.duplicate) {
+      fetch(process.env.WAITLIST_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, brand, created_at: new Date().toISOString() }),
+      }).catch(err => console.error('Sheet webhook failed:', err.message));
+    }
+    res.json({ ok: true, duplicate: r.duplicate });
+  } catch (e) {
+    console.error('Waitlist error:', e.message);
+    res.status(500).json({ error: 'Could not save right now — please try again.' });
+  }
+});
+
+// Owner-only view of signups. Pass ?key=... matching the WAITLIST_KEY env var.
+app.get('/api/waitlist', async (req, res) => {
+  const key = process.env.WAITLIST_KEY;
+  if (!key || req.query.key !== key) return res.status(403).json({ error: 'Forbidden' });
+  const rows = await db.listWaitlist();
+  res.json({ count: rows.length, signups: rows });
 });
 
 db.init()
