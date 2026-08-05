@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex"/>
+<title>Otzaar — Waitlist signups</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{--ivory:#f4efe6;--paper:#fff;--ink:#17161a;--soft:#5c554b;--muted:#a29a8c;--line:#e4dccd;--camel:#b5884f;--coral:#e0654c;
+    --serif:"Cormorant Garamond",Georgia,serif;--sans:"Jost",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--ivory);color:var(--ink);font-weight:300;padding:36px 22px 60px}
+  .head{max-width:820px;margin:0 auto 22px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  h1{font-family:var(--serif);font-weight:500;font-size:32px}
+  h1 span{color:var(--coral)}
+  .count{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+  .btn{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;background:var(--ink);color:#fff;border:none;border-radius:40px;padding:11px 20px;cursor:pointer}
+  .btn:hover{opacity:.88}.btn:disabled{opacity:.4;cursor:default}
+  .card{max-width:820px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--line)}
+  th{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:400;background:#faf7f1}
+  tr:last-child td{border-bottom:none}
+  td.brand{color:var(--soft)}
+  .msg{max-width:820px;margin:0 auto;text-align:center;color:var(--soft);padding:50px 20px;font-family:var(--serif);font-style:italic;font-size:20px}
+</style>
+</head>
+<body>
+<div class="head">
+  <div>
+    <h1>Otz<span>aar</span> — Waitlist</h1>
+    <div class="count" id="count">Loading…</div>
+  </div>
+  <button class="btn" id="csv" disabled>Download CSV</button>
+</div>
+<div class="card" id="card" style="display:none"><table><thead>
+  <tr><th>Joined</th><th>Email</th><th>Brand / studio</th></tr>
+</thead><tbody id="rows"></tbody></table></div>
+<div class="msg" id="msg">Loading…</div>
+
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var key = params.get('key') || '';
+  var msg = document.getElementById('msg');
+  var card = document.getElementById('card');
+  var rowsEl = document.getElementById('rows');
+  var countEl = document.getElementById('count');
+  var csvBtn = document.getElementById('csv');
+  var data = [];
+
+  function fmt(ts){ try{ return new Date(ts).toLocaleString(); }catch(_){ return ts||''; } }
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+  if(!key){ msg.textContent = 'Add your private key to the URL: /signups?key=YOUR_KEY'; return; }
+
+  fetch('/api/waitlist?key=' + encodeURIComponent(key))
+    .then(function(r){ if(r.status===403){ throw new Error('Not authorized — check your key.'); } return r.json(); })
+    .then(function(d){
+      data = (d && d.signups) || [];
+      countEl.textContent = data.length + (data.length===1?' signup':' signups');
+      if(!data.length){ msg.textContent = 'No signups yet — they’ll appear here the moment someone joins.'; return; }
+      msg.style.display='none'; card.style.display='block'; csvBtn.disabled=false;
+      rowsEl.innerHTML = data.map(function(s){
+        return '<tr><td>'+fmt(s.created_at)+'</td><td>'+esc(s.email)+'</td><td class="brand">'+(esc(s.brand)||'—')+'</td></tr>';
+      }).join('');
+    })
+    .catch(function(e){ msg.textContent = e.message || 'Could not load signups.'; });
+
+  csvBtn.addEventListener('click', function(){
+    var lines = [['Joined','Email','Brand']].concat(data.map(function(s){
+      return [fmt(s.created_at), s.email||'', s.brand||''];
+    }));
+    var csv = lines.map(function(row){
+      return row.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+    }).join('\n');
+    var blob = new Blob([csv], {type:'text/csv'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'otzaar-waitlist.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+})();
+</script>
+</body>
+</html>

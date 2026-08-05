@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Otzaar — The sample sale rush, without the crush</title>
+<meta name="description" content="Otzaar lets any label run its own flat-price sample sale online — the thrill of the drop, the joy of the find, none of the elbows. Post your pieces, set your price, share one link."/>
+<meta property="og:title" content="Otzaar — The sample sale rush, without the crush"/>
+<meta property="og:description" content="Run your own flat-price sample sale online. The thrill of the drop, none of the elbows."/>
+<meta property="og:type" content="website"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --ivory:#f4efe6;--paper:#ffffff;--ink:#17161a;--soft:#5c554b;--muted:#a29a8c;--line:#e4dccd;
+    --camel:#b5884f;--camel-soft:#e7d9c1;--navy:#1e2a44;--coral:#e0654c;
+    --serif:"Cormorant Garamond",Georgia,serif;--sans:"Jost",-apple-system,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);background:var(--ivory);color:var(--ink);font-weight:300;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .marquee{background:var(--ink);color:#efe9dd;font-size:11px;letter-spacing:.3em;text-transform:uppercase;text-align:center;padding:9px}
+  .marquee b{color:#fff;font-weight:500}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 26px}
+
+  /* nav */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0 6px}
+  nav .brand{font-family:var(--serif);font-size:27px;letter-spacing:.01em;font-weight:500}
+  nav .brand span{color:var(--coral)}
+  nav a.navcta{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);text-decoration:none;border:1px solid var(--ink);border-radius:40px;padding:9px 18px;transition:background .2s,color .2s}
+  nav a.navcta:hover{background:var(--ink);color:#fff}
+
+  /* hero */
+  .hero{text-align:center;padding:50px 0 8px;max-width:820px;margin:0 auto}
+  .hero .kick{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--camel);margin-bottom:20px}
+  .hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(44px,8.4vw,90px);line-height:.98;letter-spacing:-.01em}
+  .hero h1 em{font-style:italic;color:var(--coral)}
+  .hero p.sub{margin:24px auto 0;max-width:560px;font-size:16px;color:var(--soft);line-height:1.7}
+
+  /* waitlist form */
+  form.wl{margin:30px auto 0;max-width:520px;display:flex;flex-direction:column;gap:10px}
+  form.wl .row{display:flex;gap:10px}
+  form.wl input{flex:1;font-family:var(--sans);font-weight:300;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:40px;padding:14px 20px;outline:none;transition:border-color .2s}
+  form.wl input:focus{border-color:var(--camel)}
+  form.wl input::placeholder{color:var(--muted)}
+  form.wl button{font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;background:var(--coral);color:#fff;border:1px solid var(--coral);border-radius:40px;padding:14px 26px;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+  form.wl button:hover{opacity:.88}
+  form.wl button:disabled{opacity:.5;cursor:default}
+  .wl-note{font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
+  .wl-ok{display:none;margin:30px auto 0;max-width:520px;text-align:center;border:1px solid var(--line);background:var(--paper);border-radius:18px;padding:26px 24px}
+  .wl-ok .big{font-family:var(--serif);font-style:italic;font-size:27px;margin-bottom:6px;color:var(--coral)}
+  .wl-ok .sm{font-size:13px;color:var(--soft)}
+  .err{color:var(--coral);font-size:12.5px;text-align:center;min-height:16px}
+  @media(max-width:560px){form.wl .row{flex-direction:column}}
+
+  /* hero art */
+  .art{max-width:1180px;margin:46px auto 0;padding:0 20px}
+  .art .frame{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#efe7d8;box-shadow:0 20px 60px -30px rgba(40,32,24,.45)}
+  .art .frame img{display:block;width:100%;height:auto}
+  .art .tag{position:absolute;top:-14px;left:26px;background:var(--ink);color:#f4efe6;font-family:var(--serif);font-weight:600;font-size:19px;padding:9px 16px;border-radius:11px;transform:rotate(-6deg);box-shadow:0 8px 22px -8px rgba(0,0,0,.4)}
+  .art .cap{text-align:center;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:16px}
+
+  /* steps */
+  .steps{padding:78px 0 20px}
+  .steps .lead{text-align:center;font-family:var(--serif);font-size:clamp(28px,4.6vw,42px);font-weight:500;margin-bottom:6px}
+  .steps .leadsub{text-align:center;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:44px}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  @media(max-width:760px){.cols{grid-template-columns:1fr;gap:16px;max-width:440px;margin:0 auto}}
+  .col{border-radius:18px;padding:30px 26px 32px;border:1px solid var(--line)}
+  .col.c1{background:var(--paper)}.col.c2{background:#f0ece2}.col.c3{background:var(--camel-soft)}
+  .col .no{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;font-family:var(--serif);font-style:italic;font-size:19px;color:#fff;margin-bottom:16px}
+  .col.c1 .no{background:var(--ink)}.col.c2 .no{background:var(--navy)}.col.c3 .no{background:var(--camel)}
+  .col h3{font-family:var(--serif);font-weight:600;font-size:24px;margin-bottom:9px}
+  .col p{font-size:14.5px;color:var(--soft);line-height:1.7}
+
+  /* band */
+  .band{margin-top:82px;background:var(--navy);color:#fff}
+  .band .inner{max-width:820px;margin:0 auto;padding:74px 26px;text-align:center}
+  .band h2{font-family:var(--serif);font-weight:500;font-size:clamp(30px,5vw,46px);line-height:1.14;color:#fff}
+  .band h2 em{font-style:italic;color:#e0b48c}
+  .band p{margin:20px auto 0;max-width:560px;font-size:15px;color:#c9cfda;line-height:1.75}
+  .band a.bandcta{display:inline-block;margin-top:32px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#fff;background:var(--coral);text-decoration:none;border-radius:40px;padding:14px 30px;transition:opacity .2s}
+  .band a.bandcta:hover{opacity:.9}
+
+  /* provenance + footer */
+  .prov{text-align:center;padding:56px 26px 8px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--soft)}
+  .prov a{color:var(--coral);text-decoration:none;border-bottom:1px solid var(--camel-soft)}
+  footer{text-align:center;padding:34px 26px 54px;color:var(--muted);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+  footer .fb{font-family:var(--serif);font-style:normal;letter-spacing:.01em;font-size:18px;color:var(--ink);text-transform:none;margin-bottom:8px;font-weight:500}
+  footer .fb span{color:var(--coral)}
+</style>
+</head>
+<body>
+<div class="marquee">Otzaar · <b>The sample sale rush</b>, without the crush</div>
+
+<div class="wrap">
+  <nav>
+    <div class="brand">Otz<span>aar</span></div>
+    <a class="navcta" href="#waitlist">Join the waitlist</a>
+  </nav>
+
+  <section class="hero" id="waitlist">
+    <div class="kick">Run your own sample sale</div>
+    <h1>The sample sale rush.<br/>Without the <em>crush</em>.</h1>
+    <p class="sub">Otzaar lets any label run its own flat-price sample sale online — the thrill of the drop, the joy of the find, none of the elbows. Post your pieces, set your price, share one link.</p>
+
+    <form class="wl" id="wlForm" novalidate>
+      <div class="row">
+        <input type="email" id="wlEmail" name="email" placeholder="you@yourlabel.com" autocomplete="email" required/>
+        <button type="submit" id="wlBtn">Join the waitlist</button>
+      </div>
+      <input type="text" id="wlBrand" name="brand" placeholder="Your brand or studio (optional)" autocomplete="organization"/>
+      <div class="err" id="wlErr"></div>
+      <div class="wl-note">Early access is rolling out to independent designers first. No spam — just your invite.</div>
+    </form>
+
+    <div class="wl-ok" id="wlOk">
+      <div class="big">You're on the list!</div>
+      <div class="sm">We'll email <b id="okEmail">you</b> the moment your invite is ready. Welcome to Otzaar.</div>
+    </div>
+  </section>
+</div>
+
+<section class="art">
+  <div class="frame">
+    <div class="tag">One flat price</div>
+    <!-- Hero illustration (option D). -->
+    <img src="https://d8j0ntlcm91z4.cloudfront.net/user_3Duvf0hjkEybYhx13HTJtF9qRmV/hf_20260805_114827_baede718-1c2b-432f-85ad-33be4d3b2056.png" alt="An elegant, diverse crowd of stylish women at a sample sale, holding shopping bags and garments, in a chic camel, navy and black palette with coral accents"/>
+  </div>
+  <div class="cap">The energy of a sample sale — online, and all yours</div>
+</section>
+
+<div class="wrap">
+  <section class="steps">
+    <div class="lead">A whole sample sale, in three moves.</div>
+    <div class="leadsub">From rack to sold out</div>
+    <div class="cols">
+      <div class="col c1">
+        <div class="no">1</div>
+        <h3>Post your pieces</h3>
+        <p>Upload a photo, add the size, fabric, and colour. Every piece is one-of-one — Otzaar marks it claimed the second it sells, so nothing oversells.</p>
+      </div>
+      <div class="col c2">
+        <div class="no">2</div>
+        <h3>Set your price &amp; clock</h3>
+        <p>One flat price across the rack and a countdown that makes it a moment. Buyers feel the rush; you keep it effortless.</p>
+      </div>
+      <div class="col c3">
+        <div class="no">3</div>
+        <h3>Share your link</h3>
+        <p>Send one link. Buyers check out by card, pickup or shipping, and you get a clean door list of who bought what — ready for the counter.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="band">
+  <div class="inner">
+    <h2>For the rack of samples that's <em>too good</em> to keep in the closet.</h2>
+    <p>Otzaar is built for independent designers and studios — the ones with beautiful overstock, prototypes, and end-of-season pieces and no easy way to sell them. Skip the storefront. Run a sale that feels like an event.</p>
+    <a class="bandcta" href="#waitlist">Get early access</a>
+  </div>
+</section>
+
+<footer>
+  <div class="fb">Otz<span>aar</span></div>
+  The sample sale rush, without the crush · © 2026
+</footer>
+
+<script>
+(function(){
+  var form = document.getElementById('wlForm');
+  var email = document.getElementById('wlEmail');
+  var brand = document.getElementById('wlBrand');
+  var btn = document.getElementById('wlBtn');
+  var err = document.getElementById('wlErr');
+  var ok = document.getElementById('wlOk');
+  var okEmail = document.getElementById('okEmail');
+
+  function valid(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+  form.addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    err.textContent = '';
+    var e = (email.value||'').trim();
+    if(!valid(e)){ err.textContent = 'Please enter a valid email address.'; email.focus(); return; }
+    btn.disabled = true; btn.textContent = 'Joining…';
+    try{
+      var r = await fetch('/api/waitlist', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email:e, brand:(brand.value||'').trim() })
+      });
+      var d = {};
+      try{ d = await r.json(); }catch(_){}
+      if(r.ok){
+        okEmail.textContent = e;
+        form.style.display = 'none';
+        ok.style.display = 'block';
+      } else {
+        err.textContent = (d && d.error) ? d.error : 'Something went wrong — please try again.';
+        btn.disabled = false; btn.textContent = 'Join the waitlist';
+      }
+    }catch(_){
+      err.textContent = 'Network hiccup — please try again.';
+      btn.disabled = false; btn.textContent = 'Join the waitlist';
+    }
+  });
+})();
+</script>
+</body>
+</html>
